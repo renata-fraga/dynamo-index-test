@@ -11,8 +11,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 
-import java.util.Objects;
-
 @Getter
 @Setter
 @DynamoDBTable(tableName = "Direct-Message-Messages")
@@ -24,19 +22,16 @@ public class Message {
   private MessagePK messagePK;
 
   @DynamoDBAttribute
-  @DynamoDBIndexRangeKey(globalSecondaryIndexName = "FromGSI")
   private String from;
+
+  @DynamoDBIndexHashKey(globalSecondaryIndexName = "CompositionToFromIndex")
+  @DynamoDBAttribute(attributeName = "CompositionToFrom")
+  private String compositionToFrom;
 
   @DynamoDBAttribute
   private String status;
 
-
-  public MessagePK instantiateMessagePk() {
-    return Objects.isNull(messagePK) ? new MessagePK() : messagePK;
-  }
-
-  @DynamoDBIndexHashKey(globalSecondaryIndexName = "FromGSI")
-  @DynamoDBHashKey(attributeName = "to")
+  @DynamoDBHashKey(attributeName = "To")
   public String getTo() {
     return messagePK != null ? messagePK.getTo() : null;
   }
@@ -48,7 +43,8 @@ public class Message {
     messagePK.setTo(to);
   }
 
-  @DynamoDBRangeKey(attributeName = "sendDate")
+  @DynamoDBIndexRangeKey(globalSecondaryIndexName = "CompositionToFromIndex")
+  @DynamoDBRangeKey(attributeName = "SendDate")
   public Long getSendDate() {
     return messagePK != null ? messagePK.getSendDate() : null;
   }

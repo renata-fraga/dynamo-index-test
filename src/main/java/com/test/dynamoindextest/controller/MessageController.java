@@ -3,6 +3,7 @@ package com.test.dynamoindextest.controller;
 
 import com.test.dynamoindextest.model.Message;
 import com.test.dynamoindextest.repository.MessageRepository;
+import com.test.dynamoindextest.util.CompositionHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,30 +25,34 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(path = "/messages", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MessageController {
 
-  private final MessageRepository messageRepository;
+    private final MessageRepository messageRepository;
 
-  @PostMapping(path = "/{quantidade}")
-  public void publishMessage(@PathVariable("quantidade") int quantidade) throws InterruptedException {
-    for (int i = 0; i < quantidade; i++) {
-      log.info("Logando {} de {}", i, quantidade);
+    @PostMapping(path = "/{quantidade}")
+    public void publishMessage(@PathVariable("quantidade") int quantidade) throws InterruptedException {
+        for (int i = 0; i < quantidade; i++) {
+            log.info("Logando {} de {}", i, quantidade);
 
-      Message message = new Message();
-      message.setTo("999");
-      message.setFrom("998");
-      message.setSendDate(System.currentTimeMillis());
-      message.setStatus("SEND");
+            Message message = new Message();
+            message.setTo("999");
+            message.setFrom("998");
+            message.setCompositionToFrom(CompositionHelper.concatValues(message.getTo(), message.getFrom()));
+            message.setSendDate(System.currentTimeMillis());
+            message.setStatus("SEND");
 
-      messageRepository.save(message);
+            messageRepository.save(message);
 
-      TimeUnit.MILLISECONDS.sleep(2);
+            TimeUnit.MILLISECONDS.sleep(2);
+        }
     }
-  }
 
-  @GetMapping
-  public ResponseEntity<Page<Message>> getMessages(@RequestParam String to,
-      @RequestParam String from,
-      @RequestParam Long sendDate) {
+    @GetMapping
+    public ResponseEntity<Page<Message>> getMessages(@RequestParam String to,
+        @RequestParam String from,
+        @RequestParam Long sendDate,
+        @RequestParam int page, @RequestParam int size) {
 
-    return ResponseEntity.ok(messageRepository.findByToAndFrom(to, from, PageRequest.of(0,10)));
-  }
+        return ResponseEntity.ok(messageRepository.findByCompositionToFromAndSendDateLessThanEqual(CompositionHelper.concatValues(to, from),
+            sendDate, PageRequest.of(page, size)));
+    }
+
 }

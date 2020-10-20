@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableDynamoDBRepositories("com.test.dynamoindex.repository")
+@EnableDynamoDBRepositories("com.test.dynamoindextest.repository")
 public class DynamoDBConfig {
 
   public AWSCredentialsProvider amazonAWSCredentialsProvider() {
